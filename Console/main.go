@@ -2,13 +2,19 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
-var taskList []string
+type Task struct {
+	Id   int
+	Name string
+}
+
+var taskList []Task
 
 func main() {
 	defer storeTasksInTextFile()
@@ -57,14 +63,18 @@ func deleteTask(reader *bufio.Reader) {
 	}
 
 	taskNumber, err := strconv.Atoi(taskToDelete)
+
 	if err == nil {
-		taskIndex := taskNumber - 1
-		taskList = append(taskList[:taskIndex], taskList[taskIndex+1:]...)
+		for index, value := range taskList {
+			if value.Id == taskNumber {
+				taskList = append(taskList[:index], taskList[index+1:]...)
+			}
+		}
 	}
 
 	taskIndex := -1
 	for index, value := range taskList {
-		if strings.Contains(value, taskToDelete) {
+		if strings.Contains(value.Name, taskToDelete) {
 			taskIndex = index
 			break
 		}
@@ -85,7 +95,13 @@ func addTask(reader *bufio.Reader) {
 	}
 
 	taskName = strings.TrimRight(taskName, "\n")
-	taskList = append(taskList, strconv.Itoa(len(taskList)+1)+". "+taskName)
+	taskId := len(taskList) + 1
+	task := Task{
+		Id:   taskId,
+		Name: taskName,
+	}
+
+	taskList = append(taskList, task)
 }
 
 func displayMenu() {
@@ -97,31 +113,41 @@ func displayMenu() {
 }
 
 func displayTaskList() {
+	fmt.Println("ID \t Name")
 	for _, value := range taskList {
-		fmt.Printf("%s\n", value)
+		fmt.Printf("%d \t %s\n", value.Id, value.Name)
 	}
 }
 
 func storeTasksInTextFile() {
-	err := os.WriteFile("tasks.txt", []byte(strings.Join(taskList, "\n")), 0644)
+	jsonData, err := json.Marshal(taskList)
+
+	if err != nil {
+		fmt.Println("Unable to convert to JSON")
+		return
+	}
+	err = os.WriteFile("tasks.txt", jsonData, 0644)
 
 	if err != nil {
 		fmt.Println("Failed to store", err)
 	}
 }
 
-func readExistingTasks() ([]string, error) {
+func readExistingTasks() ([]Task, error) {
 	tasksFileText, err := os.ReadFile("tasks.txt")
 
 	if err != nil {
 		file, err := os.Create("tasks.txt")
 		defer file.Close()
 
-		return []string{}, err
+		return []Task{}, err
 	}
 
-	existingTasks := string(tasksFileText)
-	taskList = strings.Split(existingTasks, "\n")
+	err = json.Unmarshal(tasksFileText, &taskList)
 
+	if err != nil {
+		fmt.Println("Unable to deserialize")
+	}
 	return taskList, nil
+
 }
