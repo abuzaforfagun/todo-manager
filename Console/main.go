@@ -40,6 +40,10 @@ func main() {
 			defer store_in_file.CloseConnection()
 			fmt.Println("----- THANK YOU -----")
 			return
+		case 5:
+			updateStatus(core.InProgress)
+		case 6:
+			updateStatus(core.Completed)
 		default:
 			fmt.Println("Please enter correct value")
 		}
@@ -95,7 +99,9 @@ func displayMenu() {
 	1. Add
 	2. Delete
 	3. Display
-	4. Exit`)
+	4. Exit
+	5. Update to In Progres
+	6. Update to Completed`)
 }
 
 func displayTaskList() {
@@ -109,4 +115,30 @@ func displayTaskList() {
 
 func clearScreen() {
 	fmt.Print("\033[H\033[2J")
+}
+
+func updateStatus(status core.TaskStatus) {
+	fmt.Println("Enter task id")
+
+	var taskId int
+	reader := bufio.NewReader(os.Stdin)
+	_, err := fmt.Fscanf(reader, "%d", &taskId)
+	if err != nil {
+		fmt.Println("Unable to get the id")
+		return
+	}
+
+	var task Task
+
+	if status == core.InProgress {
+		task, err = store_in_file.UpdateToInProgress(taskId)
+	}
+
+	if status == core.Completed {
+		task, err = store_in_file.UpdateToCompleted(taskId)
+	}
+	if err != nil {
+		fmt.Println("Unable to update the status", err)
+	}
+	fmt.Printf("Task[%s] status is updated to %s\n", strings.TrimSpace(task.Name), task.Status.ToString())
 }

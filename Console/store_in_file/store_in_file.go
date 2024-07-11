@@ -46,6 +46,7 @@ func DeleteTask(taskToDelete string) error {
 func AddTask(taskName string) {
 	taskName = strings.TrimRight(taskName, "\n")
 	taskId := len(Tasks) + 1
+	fmt.Println(taskId)
 	task := Task{
 		Id:   taskId,
 		Name: taskName,
@@ -97,4 +98,26 @@ func CloseConnection() {
 	if err != nil {
 		fmt.Println("Failed to store in the file", err)
 	}
+}
+
+func UpdateToInProgress(id int) (Task, error) {
+	for index, value := range Tasks {
+		if value.Id == id {
+			Tasks[index] = value.UpdateToInProgress()
+			return value, nil
+		}
+	}
+
+	return Task{}, errors.New("Task not found")
+}
+
+func UpdateToCompleted(id int) (Task, error) {
+	for index, value := range Tasks {
+		if value.Id == id {
+			Tasks[index] = value.UpdateToCompleted()
+			return value, nil
+		}
+	}
+
+	return Task{}, errors.New("Task not found")
 }
