@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"todo-console/core"
 )
@@ -16,17 +15,7 @@ type Task = core.Task
 
 var Tasks []Task
 
-func DeleteTask(taskToDelete string) error {
-
-	taskNumber, err := strconv.Atoi(taskToDelete)
-	if err == nil {
-		for index, value := range Tasks {
-			if value.Id == taskNumber {
-				Tasks = append(Tasks[:index], Tasks[index+1:]...)
-			}
-		}
-		return nil
-	}
+func DeleteTaskByName(taskToDelete string) error {
 
 	taskIndex := -1
 	for index, value := range Tasks {
@@ -43,7 +32,16 @@ func DeleteTask(taskToDelete string) error {
 	return nil
 }
 
-func AddTask(taskName string) {
+func DeleteTaskById(taskId int) error {
+	for index, value := range Tasks {
+		if value.Id == taskId {
+			Tasks = append(Tasks[:index], Tasks[index+1:]...)
+		}
+	}
+	return nil
+}
+
+func AddTask(taskName string) error {
 	taskName = strings.TrimRight(taskName, "\n")
 	taskId := len(Tasks) + 1
 	fmt.Println(taskId)
@@ -53,6 +51,8 @@ func AddTask(taskName string) {
 	}
 
 	Tasks = append(Tasks, task)
+
+	return nil
 }
 
 func store() error {
@@ -88,8 +88,8 @@ func Init() error {
 	return nil
 }
 
-func GetTasks() []Task {
-	return Tasks
+func GetTasks() ([]Task, error) {
+	return Tasks, nil
 }
 
 func CloseConnection() {

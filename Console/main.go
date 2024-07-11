@@ -4,16 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"todo-console/core"
-	"todo-console/store_in_file"
+
+	// repository "todo-console/store_in_file"
+	repository "todo-console/store_in_database"
 )
 
 type Task = core.Task
 
 func main() {
-
-	err := store_in_file.Init()
+	err := repository.Init()
 	if err != nil {
 		fmt.Println("Unable to initialize")
 	}
@@ -37,7 +39,7 @@ func main() {
 		case 3:
 			displayTaskList()
 		case 4:
-			defer store_in_file.CloseConnection()
+			defer repository.CloseConnection()
 			fmt.Println("----- THANK YOU -----")
 			return
 		case 5:
@@ -56,18 +58,18 @@ func deleteTask() {
 
 	reader := bufio.NewReader(os.Stdin)
 	taskToDelete, err := reader.ReadString('\n')
-
-	taskToDelete = strings.TrimSpace(taskToDelete)
-
 	if err != nil {
 		fmt.Println("Faild to retrive task number")
+		return
 	}
+	taskToDelete = strings.TrimSpace(taskToDelete)
 
-	if err == nil {
-		err := store_in_file.DeleteTask(taskToDelete)
+	taskId, err := strconv.Atoi(taskToDelete)
 
+	if err != nil {
+		err := repository.DeleteTaskById(taskId)
 		if err != nil {
-			fmt.Println("Failed to delete the task, ", err)
+			fmt.Println("Failed to delete task", err)
 			return
 		}
 	}
@@ -87,7 +89,12 @@ func addTask() {
 		fmt.Println("Error reading input", err)
 	}
 
-	store_in_file.AddTask(taskName)
+	err = repository.AddTask(taskName)
+
+	if err != nil {
+		fmt.Println("Failed to add", err)
+		return
+	}
 
 	clearScreen()
 
@@ -105,7 +112,12 @@ func displayMenu() {
 }
 
 func displayTaskList() {
-	tasks := store_in_file.GetTasks()
+	tasks, err := repository.GetTasks()
+
+	if err != nil {
+		fmt.Println("Failed to retrive tasks", err)
+		return
+	}
 
 	fmt.Println("ID \t Name")
 	for _, task := range tasks {
@@ -131,11 +143,11 @@ func updateStatus(status core.TaskStatus) {
 	var task Task
 
 	if status == core.InProgress {
-		task, err = store_in_file.UpdateToInProgress(taskId)
+		task, err = repository.UpdateToInProgress(taskId)
 	}
 
 	if status == core.Completed {
-		task, err = store_in_file.UpdateToCompleted(taskId)
+		task, err = repository.UpdateToCompleted(taskId)
 	}
 	if err != nil {
 		fmt.Println("Unable to update the status", err)
