@@ -11,8 +11,15 @@ import (
 var taskList []string
 
 func main() {
+	defer storeTasksInFile()
+	var readExistingTaskErr error
+	taskList, readExistingTaskErr = readExistingTasks()
 
+	if readExistingTaskErr != nil {
+		fmt.Println("Unable to retrieve tasks", readExistingTaskErr)
+	}
 	for {
+
 		displayMenu()
 		var input int32
 
@@ -78,6 +85,7 @@ func addTask(reader *bufio.Reader) {
 	}
 
 	taskName = strings.TrimRight(taskName, "\n")
+	fmt.Println(taskName)
 	taskList = append(taskList, strconv.Itoa(len(taskList)+1)+". "+taskName)
 }
 
@@ -93,4 +101,28 @@ func displayTaskList() {
 	for _, value := range taskList {
 		fmt.Printf("%s\n", value)
 	}
+}
+
+func storeTasksInFile() {
+	err := os.WriteFile("tasks.txt", []byte(strings.Join(taskList, "\n")), 0644)
+
+	if err != nil {
+		fmt.Println("Failed to store", err)
+	}
+}
+
+func readExistingTasks() ([]string, error) {
+	existingTasksByte, err := os.ReadFile("tasks.txt")
+
+	if err != nil {
+		file, err := os.Create("tasks.txt")
+		defer file.Close()
+
+		return []string{}, err
+	}
+
+	existingTasks := string(existingTasksByte)
+	taskList = strings.Split(existingTasks, "\n")
+
+	return taskList, nil
 }
