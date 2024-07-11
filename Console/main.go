@@ -3,29 +3,33 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type Task struct {
-	Id   int
-	Name string
-}
+const fileName string = "tasks.txt"
 
 var taskList []Task
 
 func main() {
-	defer storeTasksInTextFile()
+	defer func() {
+		err := storeTasksInTextFile()
+
+		if err != nil {
+			fmt.Println("Failed to store in the file", err)
+		}
+	}()
 	var readExistingTaskErr error
 	taskList, readExistingTaskErr = readExistingTasks()
 
 	if readExistingTaskErr != nil {
 		fmt.Println("Unable to retrieve tasks", readExistingTaskErr)
 	}
-	for {
 
+	for {
 		displayMenu()
 		var input int32
 
@@ -38,9 +42,27 @@ func main() {
 
 		switch input {
 		case 1:
-			addTask(reader)
+			fmt.Println("Please enter the task name")
+			taskName, err := reader.ReadString('\n')
+
+			if err != nil {
+				fmt.Println("Error reading input", err)
+			}
+			addTask(taskName)
 		case 2:
-			deleteTask(reader)
+			fmt.Println("Please enter the task number: ")
+			taskToDelete, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Println("Faild to retrive task number")
+			}
+			if err == nil {
+				err := deleteTask(taskToDelete)
+
+				if err != nil {
+					fmt.Println("Failed to delete the task, ", err)
+				}
+			}
+
 		case 3:
 			displayTaskList()
 		case 4:
@@ -52,23 +74,18 @@ func main() {
 	}
 }
 
-func deleteTask(reader *bufio.Reader) {
-	fmt.Println("Please enter the task number: ")
-	taskToDelete, err := reader.ReadString('\n')
-
+func deleteTask(taskToDelete string) error {
 	taskToDelete = strings.TrimRight(taskToDelete, "\n")
-
-	if err != nil {
-		fmt.Println("Error reading input", err)
-	}
 
 	taskNumber, err := strconv.Atoi(taskToDelete)
 
-	if err == nil {
-		for index, value := range taskList {
-			if value.Id == taskNumber {
-				taskList = append(taskList[:index], taskList[index+1:]...)
-			}
+	if err != nil {
+		return err
+	}
+
+	for index, value := range taskList {
+		if value.Id == taskNumber {
+			taskList = append(taskList[:index], taskList[index+1:]...)
 		}
 	}
 
@@ -80,20 +97,14 @@ func deleteTask(reader *bufio.Reader) {
 		}
 	}
 	if taskIndex == -1 {
-		fmt.Println("Task not found!")
-		return
+		return errors.New("Task not found")
 	}
 	taskList = append(taskList[:taskIndex], taskList[taskIndex+1:]...)
+
+	return nil
 }
 
-func addTask(reader *bufio.Reader) {
-	fmt.Println("Please enter the task name")
-	taskName, err := reader.ReadString('\n')
-
-	if err != nil {
-		fmt.Println("Error reading input", err)
-	}
-
+func addTask(taskName string) {
 	taskName = strings.TrimRight(taskName, "\n")
 	taskId := len(taskList) + 1
 	task := Task{
@@ -114,40 +125,40 @@ func displayMenu() {
 
 func displayTaskList() {
 	fmt.Println("ID \t Name")
-	for _, value := range taskList {
-		fmt.Printf("%d \t %s\n", value.Id, value.Name)
+	for _, task := range taskList {
+		task.Print()
 	}
 }
 
-func storeTasksInTextFile() {
+func storeTasksInTextFile() error {
 	jsonData, err := json.Marshal(taskList)
 
 	if err != nil {
-		fmt.Println("Unable to convert to JSON")
-		return
+		return err
 	}
-	err = os.WriteFile("tasks.txt", jsonData, 0644)
+	err = os.WriteFile(fileName, jsonData, 0644)
 
 	if err != nil {
-		fmt.Println("Failed to store", err)
+		return err
 	}
+
+	return err
 }
 
 func readExistingTasks() ([]Task, error) {
-	tasksFileText, err := os.ReadFile("tasks.txt")
+	tasksFileText, err := os.ReadFile(fileName)
 
 	if err != nil {
-		file, err := os.Create("tasks.txt")
+		file, err := os.Create(fileName)
 		defer file.Close()
 
-		return []Task{}, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(tasksFileText, &taskList)
 
 	if err != nil {
-		fmt.Println("Unable to deserialize")
+		return nil, err
 	}
 	return taskList, nil
-
 }
