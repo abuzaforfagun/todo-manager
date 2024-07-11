@@ -2,7 +2,9 @@ package store_in_database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 	"todo-console/core"
 
@@ -14,13 +16,22 @@ type Task = core.Task
 func Init() error { return nil }
 
 func connectDatabase() (*sql.DB, error) {
-	dbUser := "root"
-	dbPass := "admin"
-	dbName := "TaskManager"
-	dbHost := "localhost" // Or your database host
+	file, err := os.Open("config.json")
 
-	// Create a DSN (Data Source Name)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPass, dbHost, dbName)
+	if err != nil {
+		fmt.Println("Unable to open config file", err)
+	}
+	defer file.Close()
+
+	var dbConfig DbConfig
+	json.NewDecoder(file).Decode(&dbConfig)
+	_, err = json.Marshal(dbConfig)
+
+	if err != nil {
+		return nil, err
+	}
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbConfig.UserName, dbConfig.Password, dbConfig.Server, dbConfig.Database)
 
 	// Open database connection
 	db, err := sql.Open("mysql", dsn)
@@ -122,7 +133,9 @@ func UpdateToCompleted(id int) (Task, error) {
 	defer db.Close()
 
 	sql, err := db.Prepare("UPDATE Tasks SET Status = ? WHERE Id = ?")
-
+	if err != nil {
+		return err
+	}
 	_, err = sql.Exec(core.Completed, id)
 
 	if err != nil {
@@ -149,9 +162,12 @@ func DeleteTaskById(id int) error {
 	}
 	defer db.Close()
 
-	sql, err := db.Prepare("DELETE Tasks WHERE Id = ?")
+	sql, err := db.Prepare("DELETE FROM Tasks WHERE Id = ?")
 
-	_, err = sql.Exec(core.Completed, id)
+	if err != nil {
+		return err
+	}
+	_, err = sql.Exec(id)
 
 	return err
 }
@@ -165,6 +181,9 @@ func DeleteTaskByName(name string) error {
 
 	sql, err := db.Prepare("DELETE Tasks WHERE Name LIKE ?")
 
+	if err != nil {
+		return err
+	}
 	_, err = sql.Exec(core.Completed, fmt.Sprintf("%%%s%%", name))
 
 	return err

@@ -66,8 +66,15 @@ func deleteTask() {
 
 	taskId, err := strconv.Atoi(taskToDelete)
 
-	if err != nil {
+	if err == nil {
 		err := repository.DeleteTaskById(taskId)
+		if err != nil {
+			fmt.Println("Failed to delete task", err)
+			return
+		}
+	}
+	if err != nil {
+		err := repository.DeleteTaskByName(taskToDelete)
 		if err != nil {
 			fmt.Println("Failed to delete task", err)
 			return
