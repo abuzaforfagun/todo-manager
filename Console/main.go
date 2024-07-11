@@ -11,7 +11,7 @@ import (
 var taskList []string
 
 func main() {
-	defer storeTasksInFile()
+	defer storeTasksInTextFile()
 	var readExistingTaskErr error
 	taskList, readExistingTaskErr = readExistingTasks()
 
@@ -85,7 +85,6 @@ func addTask(reader *bufio.Reader) {
 	}
 
 	taskName = strings.TrimRight(taskName, "\n")
-	fmt.Println(taskName)
 	taskList = append(taskList, strconv.Itoa(len(taskList)+1)+". "+taskName)
 }
 
@@ -103,7 +102,7 @@ func displayTaskList() {
 	}
 }
 
-func storeTasksInFile() {
+func storeTasksInTextFile() {
 	err := os.WriteFile("tasks.txt", []byte(strings.Join(taskList, "\n")), 0644)
 
 	if err != nil {
@@ -112,7 +111,7 @@ func storeTasksInFile() {
 }
 
 func readExistingTasks() ([]string, error) {
-	existingTasksByte, err := os.ReadFile("tasks.txt")
+	tasksFileText, err := os.ReadFile("tasks.txt")
 
 	if err != nil {
 		file, err := os.Create("tasks.txt")
@@ -121,7 +120,7 @@ func readExistingTasks() ([]string, error) {
 		return []string{}, err
 	}
 
-	existingTasks := string(existingTasksByte)
+	existingTasks := string(tasksFileText)
 	taskList = strings.Split(existingTasks, "\n")
 
 	return taskList, nil
