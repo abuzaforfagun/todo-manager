@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"restful-service/db"
 	todo_handlers "restful-service/handlers"
@@ -14,7 +15,7 @@ func main() {
 	file, err := os.Open("config.json")
 
 	if err != nil {
-		fmt.Println("Unable to open config file", err)
+		log.Fatalf("Unable to open config file %v", err)
 	}
 	defer file.Close()
 
@@ -23,14 +24,14 @@ func main() {
 	_, err = json.Marshal(dbConfig)
 
 	if err != nil {
-		panic(err)
+		log.Fatalf("Unable to decode config file %v", err)
 	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbConfig.UserName, dbConfig.Password, dbConfig.Server, dbConfig.Database)
 
 	err = db.Init(dsn)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Unable to open database connection %v", err)
 	}
 	router := gin.Default()
 

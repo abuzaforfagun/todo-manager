@@ -1,3 +1,0 @@
-package request_model
-
-type UpdateTaskStatus

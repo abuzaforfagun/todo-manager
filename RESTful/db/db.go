@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -22,7 +23,7 @@ func Init(dataSourceName string) error {
 		return fmt.Errorf("error connecting to database: %v", err)
 	}
 
-	fmt.Println("Database connection established successfully!")
+	log.Println("Database connection established")
 	return nil
 }
 
@@ -31,5 +32,5 @@ func Get() *sql.DB {
 }
 func Close() {
 	db.Close()
-	fmt.Println("Database connection closed.")
+	log.Println("Database connection closed")
 }
