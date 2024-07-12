@@ -134,7 +134,7 @@ func UpdateToCompleted(id int) (Task, error) {
 
 	sql, err := db.Prepare("UPDATE Tasks SET Status = ? WHERE Id = ?")
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 	_, err = sql.Exec(core.Completed, id)
 
@@ -179,7 +179,7 @@ func DeleteTaskByName(name string) error {
 	}
 	defer db.Close()
 
-	sql, err := db.Prepare("DELETE Tasks WHERE Name LIKE ?")
+	sql, err := db.Prepare("DELETE FROM Tasks WHERE Name LIKE ?")
 
 	if err != nil {
 		return err
