@@ -1,6 +1,7 @@
 package todo_repositories
 
 import (
+	"errors"
 	"restful-service/db"
 	"restful-service/models"
 	"time"
@@ -55,9 +56,14 @@ func Delete(taskId int) error {
 	if err != nil {
 		return err
 	}
-	_, err = sql.Exec(taskId)
+	result, err := sql.Exec(taskId)
 	if err != nil {
 		return err
+	}
+
+	deletedRows, _ := result.RowsAffected()
+	if deletedRows != 1 {
+		return errors.New("Task not found")
 	}
 
 	return nil
