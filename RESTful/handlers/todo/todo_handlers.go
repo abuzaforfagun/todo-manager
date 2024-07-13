@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"restful-service/models"
-	todo_repositories "restful-service/repositories"
+	todo_repositories "restful-service/repositories/todo"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

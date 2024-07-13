@@ -1,6 +1,10 @@
 {
-    "server": "localhost",
-    "database": "TaskManager",
-    "username": "root",
-    "password": "admin"
+    "database": {
+        "server": "localhost",
+        "database": "TaskManager",
+        "username": "root",
+        "password": "admin"
+    },
+    "encryptionKey": "a007c982fc573c32b647a21b12561e05",
+    "jwtKey": "very-secret-key"
 }
