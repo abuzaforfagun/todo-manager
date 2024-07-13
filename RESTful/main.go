@@ -9,6 +9,7 @@ import (
 	"restful-service/db"
 	auth_handlers "restful-service/handlers/auth"
 	todo_handlers "restful-service/handlers/todo"
+	"restful-service/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,6 +39,15 @@ func main() {
 		log.Fatalf("Unable to open database connection %v", err)
 	}
 	router := gin.Default()
+
+	router.Use(func(c *gin.Context) {
+		if c.Request.URL.Path != "/login" && c.Request.URL.Path != "/user/registration" {
+			middleware.AuthMiddleware()(c)
+		} else {
+			c.Next()
+		}
+	})
+
 	router.POST("/user/register", auth_handlers.Register)
 	router.POST("/login", auth_handlers.Login)
 	router.GET("/todo", todo_handlers.GetAll)

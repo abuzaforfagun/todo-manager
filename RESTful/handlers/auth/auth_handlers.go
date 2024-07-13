@@ -48,11 +48,6 @@ func Register(c *gin.Context) {
 	}
 }
 
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
-
 func Login(c *gin.Context) {
 	var credential models.Credentials
 	err := c.BindJSON(&credential)
@@ -78,7 +73,7 @@ func Login(c *gin.Context) {
 	}
 
 	expirationTime := time.Now().Add(20 * time.Minute)
-	claims := &Claims{
+	claims := &models.Claims{
 		Username: credential.Username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
