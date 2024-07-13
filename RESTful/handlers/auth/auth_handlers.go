@@ -54,6 +54,7 @@ func Login(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
 
 	user, err := auth_repository.GetUser(credential.Username)

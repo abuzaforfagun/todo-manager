@@ -20,13 +20,15 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		tokenString = strings.Split(tokenString, "Bearer ")[1]
+		tokenArray := strings.Split(tokenString, "Bearer ")
 
-		if tokenString == "" {
+		if len(tokenArray) < 1 {
 			ctx.JSON(http.StatusUnauthorized, gin.H{})
 			ctx.Abort()
 			return
 		}
+
+		tokenString = tokenArray[1]
 
 		if tokenString == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{})

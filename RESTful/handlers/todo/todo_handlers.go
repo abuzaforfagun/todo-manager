@@ -46,6 +46,7 @@ func Delete(c *gin.Context) {
 	if err != nil {
 		log.Printf("Warning: Invalid request %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
 
 	err = todo_repositories.Delete(id)
@@ -53,6 +54,7 @@ func Delete(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: Unable to delete %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
@@ -65,6 +67,7 @@ func UpdateStatus(c *gin.Context) {
 	if err != nil {
 		log.Printf("Warning: Invalid request %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
 	status := c.Param("status")
 
@@ -78,6 +81,7 @@ func UpdateStatus(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: Unable to update status %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
 	c.JSON(http.StatusAccepted, gin.H{})
 }
