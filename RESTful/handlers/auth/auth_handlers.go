@@ -24,20 +24,54 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	isExistingUser, err := auth_repository.HasUser(credential.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{})
-		return
+	var isExistingUserChan = make(chan bool)
+	var encryptedPasswordChan = make(chan string)
+	var errChan = make(chan error)
+
+	go func() {
+		defer close(isExistingUserChan)
+		isExistingUser, err := auth_repository.HasUser(credential.Username)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		isExistingUserChan <- isExistingUser
+
+	}()
+
+	go func() {
+		defer close(encryptedPasswordChan)
+		encryptedPassword, err := utils_encryption.Encrypt(credential.Password, EncryptionKey)
+		if err != nil {
+			errChan <- err
+		}
+		encryptedPasswordChan <- encryptedPassword
+
+	}()
+
+	var isExistingUser bool
+	var encryptedPassword string
+
+	select {
+	case err := <-errChan:
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
+		}
+	case isExistingUser = <-isExistingUserChan:
+	}
+
+	select {
+	case err := <-errChan:
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
+		}
+	case encryptedPassword = <-encryptedPasswordChan:
 	}
 
 	if isExistingUser {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User is already registed"})
-		return
-	}
-
-	encryptedPassword, err := utils_encryption.Encrypt(credential.Password, EncryptionKey)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User is already registered"})
 		return
 	}
 
