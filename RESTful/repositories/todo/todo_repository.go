@@ -1,15 +1,17 @@
 package todo_repositories
 
 import (
+	"context"
 	"errors"
 	"restful-service/db"
 	"restful-service/models"
 	"time"
 )
 
-func GetAll() (tasks []models.Task, err error) {
+func GetAll(ctx context.Context) (tasks []models.Task, err error) {
 	dbConnection := db.Get()
-	rows, err := dbConnection.Query("SELECT Id, Name, Status, CreatedAt FROM Tasks")
+
+	rows, err := dbConnection.QueryContext(ctx, "SELECT Id, Name, Status, CreatedAt FROM Tasks")
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"restful-service/models"
 	auth_repository "restful-service/repositories/auth"
 	utils_encryption "restful-service/utils/ecryption"
+	"sync"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -20,6 +21,7 @@ func Register(c *gin.Context) {
 
 	err := c.BindJSON(&credential)
 	if err != nil {
+		log.Fatalln(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
@@ -28,8 +30,15 @@ func Register(c *gin.Context) {
 	var encryptedPasswordChan = make(chan string)
 	var errChan = make(chan error)
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
-		defer close(isExistingUserChan)
+		defer func() {
+			close(isExistingUserChan)
+			wg.Done()
+		}()
+
 		isExistingUser, err := auth_repository.HasUser(credential.Username)
 		if err != nil {
 			errChan <- err
@@ -39,8 +48,12 @@ func Register(c *gin.Context) {
 
 	}()
 
+	wg.Add(1)
 	go func() {
-		defer close(encryptedPasswordChan)
+		defer func() {
+			close(encryptedPasswordChan)
+			wg.Done()
+		}()
 		encryptedPassword, err := utils_encryption.Encrypt(credential.Password, EncryptionKey)
 		if err != nil {
 			errChan <- err
@@ -55,7 +68,12 @@ func Register(c *gin.Context) {
 	select {
 	case err := <-errChan:
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{})
+			log.Println(err)
+			if err.Error() == "context canceled" {
+				c.JSON(http.StatusRequestTimeout, gin.H{})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{})
+			}
 			return
 		}
 	case isExistingUser = <-isExistingUserChan:

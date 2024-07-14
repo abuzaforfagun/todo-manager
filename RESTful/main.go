@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,6 +11,7 @@ import (
 	auth_handlers "restful-service/handlers/auth"
 	todo_handlers "restful-service/handlers/todo"
 	"restful-service/middleware"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +52,7 @@ func main() {
 
 	router.POST("/user/register", auth_handlers.Register)
 	router.POST("/login", auth_handlers.Login)
-	router.GET("/todo", todo_handlers.GetAll)
+	router.GET("/todo", wrapHandlerWithContext(todo_handlers.GetAll))
 	router.POST("/todo", todo_handlers.Add)
 	router.POST("/todo/:id/:status", todo_handlers.UpdateStatus)
 	router.DELETE("/todo/:id", todo_handlers.Delete)
@@ -59,5 +61,16 @@ func main() {
 
 	if err != nil {
 		panic(err)
+	}
+}
+
+func wrapHandlerWithContext(handler func(ctx context.Context, c *gin.Context)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Create a context with timeout or from request context
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 15*time.Second)
+		defer cancel()
+
+		// Call the handler with the context
+		handler(ctx, c)
 	}
 }

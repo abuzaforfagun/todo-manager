@@ -1,6 +1,7 @@
 package todo_handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"restful-service/models"
@@ -10,8 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAll(c *gin.Context) {
-	result, err := todo_repositories.GetAll()
+func GetAll(ctx context.Context, c *gin.Context) {
+	result, err := todo_repositories.GetAll(ctx)
 
 	if err != nil {
 		log.Printf("Error: Unable to get todo list %v", err)
