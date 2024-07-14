@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func GetAll() ([]models.Task, error) {
+func GetAll() (tasks []models.Task, err error) {
 	dbConnection := db.Get()
 	rows, err := dbConnection.Query("SELECT Id, Name, Status, CreatedAt FROM Tasks")
 	if err != nil {
@@ -15,7 +15,6 @@ func GetAll() ([]models.Task, error) {
 	}
 	defer rows.Close()
 
-	var tasks []models.Task
 	for rows.Next() {
 		var task models.Task
 		var createdAtStr string

@@ -22,7 +22,7 @@ func Register(userName string, password string) error {
 	return err
 }
 
-func HasUser(username string) (bool, error) {
+func HasUser(username string) (hasUser bool, err error) {
 	db := db.Get()
 
 	sql, err := db.Prepare("SELECT EXISTS (SELECT 1 FROM UserLogin WHERE UserName = ?)")
@@ -32,17 +32,16 @@ func HasUser(username string) (bool, error) {
 	}
 	userRow := sql.QueryRow(username)
 
-	var hasUser bool
 	err = userRow.Scan(&hasUser)
 
 	if err != nil {
 		return false, err
 	}
 
-	return hasUser, nil
+	return hasUser, err
 }
 
-func GetUser(username string) (models.Credentials, error) {
+func GetUser(username string) (user models.Credentials, err error) {
 	db := db.Get()
 
 	sql, err := db.Prepare("SELECT UserName, Password FROM UserLogin WHERE UserName = ?")
@@ -52,12 +51,11 @@ func GetUser(username string) (models.Credentials, error) {
 	}
 	userRow := sql.QueryRow(username)
 
-	var user models.Credentials
 	err = userRow.Scan(&user.Username, &user.Password)
 
 	if err != nil {
 		return models.Credentials{}, err
 	}
 
-	return user, nil
+	return user, err
 }
