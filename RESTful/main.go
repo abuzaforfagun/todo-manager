@@ -41,7 +41,7 @@ func main() {
 	router := gin.Default()
 
 	router.Use(func(c *gin.Context) {
-		if c.Request.URL.Path != "/login" && c.Request.URL.Path != "/user/registration" {
+		if c.Request.URL.Path != "/login" && c.Request.URL.Path != "/user/register" {
 			middleware.AuthMiddleware()(c)
 		} else {
 			c.Next()
