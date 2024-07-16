@@ -1,61 +1,67 @@
 package auth_repository
 
 import (
+	"errors"
 	"log"
 	"restful-service/db"
 	"restful-service/models"
+
+	"gorm.io/gorm"
 )
 
 func Register(userName string, password string) error {
-	db := db.Get()
+	gormDb := db.GetGormDb()
 
-	sql, err := db.Prepare("INSERT INTO UserLogin (Username, Password) VALUES (?,?)")
-	if err != nil {
-		log.Println("Unable to prepare the sql", err)
-		return err
+	credential := models.Credential{
+		Username: userName,
+		Password: password,
 	}
 
-	_, err = sql.Exec(userName, password)
-	if err != nil {
-		log.Println("Unable to insert", err)
+	result := gormDb.Create(&credential)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			log.Println("ERROR: User already exists")
+			return errors.New("User already exists")
+		}
+		return result.Error
 	}
-	return err
+
+	return nil
 }
 
-func HasUser(username string) (hasUser bool, err error) {
-	db := db.Get()
+func HasUser(username string) (bool, error) {
+	gormDb := db.GetGormDb()
 
-	sql, err := db.Prepare("SELECT EXISTS (SELECT 1 FROM UserLogin WHERE UserName = ?)")
-	if err != nil {
-		log.Println("Unable to prepare the sql", err)
-		return false, err
-	}
-	userRow := sql.QueryRow(username)
+	var credential models.Credential
+	result := gormDb.Find(&credential, "Username=?", username)
 
-	err = userRow.Scan(&hasUser)
-
-	if err != nil {
-		return false, err
+	if result.Error != nil {
+		return false, result.Error
 	}
 
-	return hasUser, err
+	if result.RowsAffected == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
 
-func GetUser(username string) (user models.Credentials, err error) {
-	db := db.Get()
-
-	sql, err := db.Prepare("SELECT UserName, Password FROM UserLogin WHERE UserName = ?")
-	if err != nil {
-		log.Println("Unable to prepare the sql", err)
-		return models.Credentials{}, err
-	}
-	userRow := sql.QueryRow(username)
-
-	err = userRow.Scan(&user.Username, &user.Password)
-
-	if err != nil {
-		return models.Credentials{}, err
+func GetUser(username string) (user models.CredentialDto, err error) {
+	gormDb := db.GetGormDb()
+	var credential models.Credential
+	result := gormDb.Find(&credential, "Username=?", username)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.CredentialDto{}, errors.New("User not found")
+		}
+		return models.CredentialDto{}, result.Error
 	}
 
-	return user, err
+	credentialDto := models.CredentialDto{
+		Username: credential.Username,
+		Password: credential.Password,
+	}
+
+	return credentialDto, nil
 }

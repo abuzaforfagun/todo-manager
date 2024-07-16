@@ -1,36 +1,41 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
+	"restful-service/models"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-var db *sql.DB
+var gormDb *gorm.DB
 
 func Init(dataSourceName string) error {
 	var err error
-	db, err = sql.Open("mysql", dataSourceName)
-	if err != nil {
-		return fmt.Errorf("error opening database connection: %v", err)
-	}
 
-	err = db.Ping()
-	if err != nil {
-		db.Close()
-		return fmt.Errorf("error connecting to database: %v", err)
-	}
-
+	dsn := strings.Replace(dataSourceName, "TaskManager", "todo", 1)
+	gormDb, err = gorm.Open(mysql.Open(dsn + "?parseTime=true"))
 	log.Println("Database connection established")
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	gormDb.AutoMigrate(&models.Credential{})
+	gormDb.AutoMigrate(&models.Task{})
+	log.Println("Database migrated")
+
 	return nil
 }
 
-func Get() *sql.DB {
-	return db
+func GetGormDb() *gorm.DB {
+	return gormDb
 }
+
 func Close() {
+	db, _ := gormDb.DB()
 	db.Close()
 	log.Println("Database connection closed")
 }

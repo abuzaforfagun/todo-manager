@@ -22,7 +22,7 @@ func GetAll(ctx context.Context, c *gin.Context) {
 }
 
 func Add(c *gin.Context) {
-	var task models.Task
+	var task models.TaskDto
 
 	err := c.BindJSON(&task)
 	if err != nil {
@@ -33,7 +33,7 @@ func Add(c *gin.Context) {
 	err = todo_repositories.Add(task)
 	if err != nil {
 		log.Printf("Error: Unable to add todo %v", err)
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
 	c.JSON(http.StatusAccepted, gin.H{})
@@ -46,7 +46,7 @@ func Delete(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Warning: Invalid request %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -54,7 +54,7 @@ func Delete(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Error: Unable to delete %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -81,7 +81,7 @@ func UpdateStatus(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Error: Unable to update status %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusAccepted, gin.H{})

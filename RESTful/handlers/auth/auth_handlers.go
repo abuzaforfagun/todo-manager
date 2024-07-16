@@ -17,7 +17,7 @@ var EncryptionKey string
 var JwtKey string
 
 func Register(c *gin.Context) {
-	var credential models.Credentials
+	var credential models.CredentialDto
 
 	err := c.BindJSON(&credential)
 	if err != nil {
@@ -101,7 +101,7 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var credential models.Credentials
+	var credential models.CredentialDto
 	err := c.BindJSON(&credential)
 
 	if err != nil {
