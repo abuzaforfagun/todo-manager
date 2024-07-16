@@ -44,7 +44,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		_, ok := token.Claims.(*models.Claims)
+		claims, ok := token.Claims.(*models.Claims)
 
 		if !ok || !token.Valid {
 			ctx.JSON(http.StatusUnauthorized, gin.H{})
@@ -52,6 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		ctx.Set("UserId", claims.UserId)
 		ctx.Next()
 	}
 }

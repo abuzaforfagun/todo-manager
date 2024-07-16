@@ -101,15 +101,15 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var credential models.UserDto
-	err := c.BindJSON(&credential)
+	var userDto models.UserDto
+	err := c.BindJSON(&userDto)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
 
-	user, err := auth_repository.GetUser(credential.Username)
+	user, err := auth_repository.GetUser(userDto.Username)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{})
 		return
@@ -120,14 +120,15 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
-	if passwordFromDb != credential.Password {
+	if passwordFromDb != userDto.Password {
 		c.JSON(http.StatusUnauthorized, gin.H{})
 		return
 	}
 
 	expirationTime := time.Now().Add(20 * time.Minute)
 	claims := &models.Claims{
-		Username: credential.Username,
+		UserId:   user.UserId,
+		Username: userDto.Username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

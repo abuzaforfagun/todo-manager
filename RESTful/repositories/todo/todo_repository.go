@@ -1,7 +1,6 @@
 package todo_repositories
 
 import (
-	"context"
 	"errors"
 	"restful-service/db"
 	"restful-service/models"
@@ -9,12 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAll(ctx context.Context) ([]models.TaskDto, error) {
+func GetAll(userId int) ([]models.TaskDto, error) {
 	gormDb := db.GetGormDb()
 
 	var tasks []models.Task
 
-	result := gormDb.Find(&tasks)
+	result := gormDb.Where(&models.Task{UserId: uint(userId)}, userId).Find(&tasks)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -36,11 +35,12 @@ func GetAll(ctx context.Context) ([]models.TaskDto, error) {
 	return tasksDto, nil
 }
 
-func Add(task models.TaskDto) error {
+func Add(task models.TaskRequestDto, userId uint) error {
 	gormDb := db.GetGormDb()
 
 	model := models.Task{
-		Name: task.Name,
+		Name:   task.Name,
+		UserId: userId,
 	}
 
 	result := gormDb.Create(&model)
@@ -51,23 +51,28 @@ func Add(task models.TaskDto) error {
 	return nil
 }
 
-func Delete(taskId int) error {
+func Delete(taskId int, userId uint) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
-	result := gormDb.Delete(&task).Where("Id=?", taskId)
+	result := gormDb.Where("Id=?", taskId).Where("user_id=?", userId).Delete(&task)
+
 	if result.Error != nil {
 		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("failed to delete")
 	}
 
 	return nil
 }
 
-func UpdateStatusToInProgress(taskId int) error {
+func UpdateStatusToInProgress(taskId int, userId uint) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
-	result := gormDb.First(&task, taskId)
+	result := gormDb.Where("Id=? AND user_id", taskId, userId).First(&task)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return errors.New("invalid task id")
@@ -80,11 +85,11 @@ func UpdateStatusToInProgress(taskId int) error {
 	return nil
 }
 
-func UpdateStatusToCompleted(taskId int) error {
+func UpdateStatusToCompleted(taskId int, userId uint) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
-	result := gormDb.First(&task, taskId)
+	result := gormDb.Where("Id=? AND user_id", taskId, userId).First(&task)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return errors.New("invalid task id")

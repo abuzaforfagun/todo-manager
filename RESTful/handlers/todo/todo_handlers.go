@@ -12,7 +12,8 @@ import (
 )
 
 func GetAll(ctx context.Context, c *gin.Context) {
-	result, err := todo_repositories.GetAll(ctx)
+	_ = c.GetUint("UserId")
+	result, err := todo_repositories.GetAll(1)
 
 	if err != nil {
 		log.Printf("Error: Unable to get todo list %v", err)
@@ -22,15 +23,16 @@ func GetAll(ctx context.Context, c *gin.Context) {
 }
 
 func Add(c *gin.Context) {
-	var task models.TaskDto
+	var task models.TaskRequestDto
 
+	userId := c.GetUint("UserId")
 	err := c.BindJSON(&task)
 	if err != nil {
 		log.Printf("Warning: Invalid request %v", err)
 		c.JSON(http.StatusBadRequest, nil)
 	}
 
-	err = todo_repositories.Add(task)
+	err = todo_repositories.Add(task, userId)
 	if err != nil {
 		log.Printf("Error: Unable to add todo %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -42,6 +44,7 @@ func Add(c *gin.Context) {
 func Delete(c *gin.Context) {
 	idParam := c.Param("id")
 
+	userId := c.GetUint("UserId")
 	id, err := strconv.Atoi(idParam)
 
 	if err != nil {
@@ -50,7 +53,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	err = todo_repositories.Delete(id)
+	err = todo_repositories.Delete(id, userId)
 
 	if err != nil {
 		log.Printf("Error: Unable to delete %v", err)
@@ -64,6 +67,7 @@ func Delete(c *gin.Context) {
 func UpdateStatus(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
+	userId := c.GetUint("UserId")
 
 	if err != nil {
 		log.Printf("Warning: Invalid request %v", err)
@@ -73,10 +77,10 @@ func UpdateStatus(c *gin.Context) {
 	status := c.Param("status")
 
 	if status == "inprogress" {
-		err = todo_repositories.UpdateStatusToInProgress(id)
+		err = todo_repositories.UpdateStatusToInProgress(id, userId)
 	}
 	if status == "completed" {
-		err = todo_repositories.UpdateStatusToCompleted(id)
+		err = todo_repositories.UpdateStatusToCompleted(id, userId)
 	}
 
 	if err != nil {

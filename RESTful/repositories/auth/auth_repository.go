@@ -53,15 +53,16 @@ func GetUser(username string) (user models.UserDto, err error) {
 	result := gormDb.Find(&credential, "Username=?", username)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return models.UserDto{}, errors.New("User not found")
+			return models.UserDto{}, errors.New("user not found")
 		}
 		return models.UserDto{}, result.Error
 	}
 
-	credentialDto := models.UserDto{
+	userDto := models.UserDto{
+		UserId:   credential.ID,
 		Username: credential.Username,
 		Password: credential.Password,
 	}
 
-	return credentialDto, nil
+	return userDto, nil
 }
