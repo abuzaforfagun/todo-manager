@@ -67,7 +67,7 @@ func UpdateStatusToInProgress(taskId int) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
-	result := gormDb.First(&task, "Id=?", taskId)
+	result := gormDb.First(&task, taskId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return errors.New("invalid task id")
@@ -84,7 +84,7 @@ func UpdateStatusToCompleted(taskId int) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
-	result := gormDb.First(&task, "Id=?", taskId)
+	result := gormDb.First(&task, taskId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return errors.New("invalid task id")

@@ -23,7 +23,7 @@ func Init(dataSourceName string) error {
 		log.Println(err)
 	}
 
-	gormDb.AutoMigrate(&models.Credential{})
+	gormDb.AutoMigrate(&models.User{})
 	gormDb.AutoMigrate(&models.Task{})
 	log.Println("Database migrated")
 

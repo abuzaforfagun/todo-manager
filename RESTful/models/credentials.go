@@ -4,17 +4,17 @@ import (
 	"gorm.io/gorm"
 )
 
-type CredentialDto struct {
+type UserDto struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-type Credential struct {
+type User struct {
 	gorm.Model
 	Username string
 	Password string
 }
 
-func (Credential) TableName() string {
-	return "Credentials"
+func (User) TableName() string {
+	return "Users"
 }

@@ -12,7 +12,7 @@ import (
 func Register(userName string, password string) error {
 	gormDb := db.GetGormDb()
 
-	credential := models.Credential{
+	credential := models.User{
 		Username: userName,
 		Password: password,
 	}
@@ -33,7 +33,7 @@ func Register(userName string, password string) error {
 func HasUser(username string) (bool, error) {
 	gormDb := db.GetGormDb()
 
-	var credential models.Credential
+	var credential models.User
 	result := gormDb.Find(&credential, "Username=?", username)
 
 	if result.Error != nil {
@@ -47,18 +47,18 @@ func HasUser(username string) (bool, error) {
 	return true, nil
 }
 
-func GetUser(username string) (user models.CredentialDto, err error) {
+func GetUser(username string) (user models.UserDto, err error) {
 	gormDb := db.GetGormDb()
-	var credential models.Credential
+	var credential models.User
 	result := gormDb.Find(&credential, "Username=?", username)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return models.CredentialDto{}, errors.New("User not found")
+			return models.UserDto{}, errors.New("User not found")
 		}
-		return models.CredentialDto{}, result.Error
+		return models.UserDto{}, result.Error
 	}
 
-	credentialDto := models.CredentialDto{
+	credentialDto := models.UserDto{
 		Username: credential.Username,
 		Password: credential.Password,
 	}
