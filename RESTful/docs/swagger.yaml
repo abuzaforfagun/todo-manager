@@ -1,0 +1,136 @@
+definitions:
+  models.LoginResponse:
+    description: LoginResponse represents a user login response object
+    properties:
+      token:
+        type: string
+    type: object
+  models.TaskDto:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  models.TaskRequestDto:
+    properties:
+      name:
+        type: string
+    type: object
+  models.UserLoginDto:
+    description: UserLoginDto represents a user login object
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: User login
+      parameters:
+      - description: Login payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLoginDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+      summary: User login
+      tags:
+      - user
+  /todo:
+    delete:
+      description: Delete todo item
+      parameters:
+      - description: Todo id to delete
+        in: query
+        name: todo
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - BearerAuth: []
+      summary: Delete Todo
+      tags:
+      - todo
+    get:
+      description: Get todo list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.TaskDto'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get Todo
+      tags:
+      - todo
+    post:
+      consumes:
+      - application/json
+      description: Add new todo item
+      parameters:
+      - description: Task payload
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/models.TaskRequestDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      security:
+      - BearerAuth: []
+      summary: Add Todo
+      tags:
+      - todo
+  /user/register:
+    post:
+      description: Register new user
+      parameters:
+      - description: Registration payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Register user
+      tags:
+      - user
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

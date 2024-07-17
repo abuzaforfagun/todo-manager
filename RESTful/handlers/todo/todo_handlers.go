@@ -11,6 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Get Todo
+// @Description Get todo list
+// @Tags todo
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} []models.TaskDto
+// @Router /todo [get]
 func GetAll(ctx context.Context, c *gin.Context) {
 	_ = c.GetUint("UserId")
 	result, err := todo_repositories.GetAll(1)
@@ -22,6 +29,15 @@ func GetAll(ctx context.Context, c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// @Summary Add Todo
+// @Description Add new todo item
+// @Tags todo
+// @Produce json
+// @Accept json
+// @Security BearerAuth
+// @Param todo body models.TaskRequestDto true "Task payload"
+// @Success 201
+// @Router /todo [post]
 func Add(c *gin.Context) {
 	var task models.TaskRequestDto
 
@@ -41,8 +57,16 @@ func Add(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{})
 }
 
+// @Summary Delete Todo
+// @Description Delete todo item
+// @Tags todo
+// @Produce json
+// @Security BearerAuth
+// @Param todo query int true "Todo id to delete"
+// @Success 200
+// @Router /todo [delete]
 func Delete(c *gin.Context) {
-	idParam := c.Param("id")
+	idParam := c.Query("id")
 
 	userId := c.GetUint("UserId")
 	id, err := strconv.Atoi(idParam)

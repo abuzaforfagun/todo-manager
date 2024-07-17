@@ -26,6 +26,5 @@ type TaskDto struct {
 }
 
 type TaskRequestDto struct {
-	Name   string
-	Status string
+	Name string
 }

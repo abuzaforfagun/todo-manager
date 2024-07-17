@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	_ "restful-service/docs"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
@@ -16,8 +18,15 @@ import (
 var EncryptionKey string
 var JwtKey string
 
+// @Summary Register user
+// @Description Register new user
+// @Tags user
+// @Param user body models.UserLoginDto true "Registration payload"
+// @Produce json
+// @Success 200
+// @Router /user/register [post]
 func Register(c *gin.Context) {
-	var credential models.UserDto
+	var credential models.UserLoginDto
 
 	err := c.BindJSON(&credential)
 	if err != nil {
@@ -98,10 +107,19 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{})
 }
 
+// @Summary User login
+// @Description User login
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.UserLoginDto true "Login payload"
+// @Success 201 {object} models.LoginResponse
+// @Router /login [post]
 func Login(c *gin.Context) {
-	var userDto models.UserDto
+	var userDto models.UserLoginDto
 	err := c.BindJSON(&userDto)
 
 	if err != nil {
@@ -141,5 +159,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	result := models.LoginResponse{Token: tokenString}
+	c.JSON(http.StatusOK, result)
 }

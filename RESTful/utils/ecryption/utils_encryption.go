@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -37,6 +38,9 @@ func Encrypt(text string, key string) (string, error) {
 }
 
 func Decrypt(encryptedData string, key string) (string, error) {
+	if encryptedData == "" {
+		return "", errors.New("unable to decrypt empty string")
+	}
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {
 		fmt.Println("Error decoding:", err)

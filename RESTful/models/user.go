@@ -10,6 +10,13 @@ type UserDto struct {
 	Password string `json:"password"`
 }
 
+// UserLoginDto represents a user login object
+// @Description UserLoginDto represents a user login object
+type UserLoginDto struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type User struct {
 	gorm.Model
 	Username string
@@ -19,4 +26,10 @@ type User struct {
 
 func (User) TableName() string {
 	return "Users"
+}
+
+// LoginResponse represents a user login response object
+// @Description LoginResponse represents a user login response object
+type LoginResponse struct {
+	Token string
 }

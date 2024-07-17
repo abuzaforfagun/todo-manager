@@ -11,11 +11,17 @@ import (
 	auth_handlers "restful-service/handlers/auth"
 	todo_handlers "restful-service/handlers/todo"
 	"restful-service/middleware"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	file, err := os.Open("config.json")
 
@@ -43,13 +49,14 @@ func main() {
 	router := gin.Default()
 
 	router.Use(func(c *gin.Context) {
-		if c.Request.URL.Path != "/login" && c.Request.URL.Path != "/user/register" {
+		if c.Request.URL.Path != "/login" && !strings.Contains(c.Request.URL.Path, "/swagger/") && c.Request.URL.Path != "/user/register" {
 			middleware.AuthMiddleware()(c)
 		} else {
 			c.Next()
 		}
 	})
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.POST("/user/register", auth_handlers.Register)
 	router.POST("/login", auth_handlers.Login)
 	router.GET("/todo", wrapHandlerWithContext(todo_handlers.GetAll))
