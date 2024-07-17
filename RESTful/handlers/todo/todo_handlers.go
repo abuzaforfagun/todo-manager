@@ -16,11 +16,38 @@ import (
 // @Tags todo
 // @Produce json
 // @Security BearerAuth
+// @Param pageSize query int false "Page size (Default 10)"
+// @Param pageNumber query int false "Page number (Default 1)"
 // @Success 200 {object} []models.TaskDto
 // @Router /todo [get]
 func GetAll(ctx context.Context, c *gin.Context) {
-	_ = c.GetUint("UserId")
-	result, err := todo_repositories.GetAll(1)
+	pageSizeParam, hasPageSize := c.GetQuery("pageSize")
+
+	pageNumberParam, hasPageNumber := c.GetQuery("pageNumber")
+
+	var pageSize = 10
+	var pageNumber = 1
+
+	if hasPageSize {
+		var err error
+		pageSize, err = strconv.Atoi(pageSizeParam)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Please verify pageSize"})
+		}
+	}
+
+	if hasPageNumber {
+		var err error
+		pageNumber, err = strconv.Atoi(pageNumberParam)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Please verify pageNumber"})
+		}
+	}
+
+	userId := c.GetUint("UserId")
+	result, err := todo_repositories.GetAll(userId, pageSize, pageNumber)
 
 	if err != nil {
 		log.Printf("Error: Unable to get todo list %v", err)

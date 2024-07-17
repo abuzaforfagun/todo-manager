@@ -64,6 +64,20 @@ const docTemplate = `{
                     "todo"
                 ],
                 "summary": "Get Todo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page size (Default 10)",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (Default 1)",
+                        "name": "pageNumber",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

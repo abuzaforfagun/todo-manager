@@ -8,12 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAll(userId int) ([]models.TaskDto, error) {
+func GetAll(userId uint, pageSize int, pageNumber int) ([]models.TaskDto, error) {
 	gormDb := db.GetGormDb()
 
 	var tasks []models.Task
 
-	result := gormDb.Where(&models.Task{UserId: uint(userId)}, userId).Find(&tasks)
+	result := gormDb.Debug().Where(&models.Task{UserId: uint(userId)}, userId).Offset(pageSize * (pageNumber - 1)).Limit(pageSize).Find(&tasks)
 
 	if result.Error != nil {
 		return nil, result.Error
