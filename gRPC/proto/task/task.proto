@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option go_package = "github.com/abuzaforfagun/todo-manager/protogen/golang/task";
+
+import "google/type/date.proto";
+
+message TaskResponseModel {
+    int32 id = 1;
+    string name = 2;
+    string status = 3;
+    google.type.Date created_at = 4;
+}
+
+message TaskRequestModel {
+    string name = 2;
+}
+
+message TaskList {
+    repeated TaskResponseModel tasks = 1;
+}
+
+message Empty {}
+
+message IntWrapper {
+    int32 value = 1;
+}
+
+service Tasks {
+    rpc AddTask(TaskRequestModel) returns (Empty) {}
+    rpc GetAll(Empty) returns (TaskList) {}
+    rpc SetToInProgress(IntWrapper) returns (Empty) {}
+    rpc SetToCompleted(IntWrapper) returns (Empty) {}
+    rpc Delete(IntWrapper) returns (Empty) {}
+}
+
+enum TaskStatus {
+    PENDING = 0;
+    IN_PROGRESS = 1;
+    COMPLETED = 2;
+}

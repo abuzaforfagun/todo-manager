@@ -1,0 +1,6 @@
+{
+    "server": "localhost",
+    "database": "TaskManager",
+    "username": "root",
+    "password": "admin"
+}
