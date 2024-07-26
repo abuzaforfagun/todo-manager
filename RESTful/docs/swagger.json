@@ -131,8 +131,46 @@
                     {
                         "type": "integer",
                         "description": "Todo id to delete",
-                        "name": "todo",
+                        "name": "id",
                         "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/todo/{id}/{status}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update todo item status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "todo"
+                ],
+                "summary": "Update todo status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Todo id to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Desired status",
+                        "name": "status",
+                        "in": "path",
                         "required": true
                     }
                 ],

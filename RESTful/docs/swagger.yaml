@@ -60,7 +60,7 @@ paths:
       parameters:
       - description: Todo id to delete
         in: query
-        name: todo
+        name: id
         required: true
         type: integer
       produces:
@@ -117,6 +117,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Add Todo
+      tags:
+      - todo
+  /todo/{id}/{status}:
+    post:
+      description: Update todo item status
+      parameters:
+      - description: Todo id to update
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Desired status
+        in: path
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - BearerAuth: []
+      summary: Update todo status
       tags:
       - todo
   /user/register:

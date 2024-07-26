@@ -97,7 +97,7 @@ func (h *TodoHandler) Add(c *gin.Context) {
 // @Tags todo
 // @Produce json
 // @Security BearerAuth
-// @Param todo query int true "Todo id to delete"
+// @Param id query int true "Todo id to delete"
 // @Success 200
 // @Router /todo [delete]
 func (h *TodoHandler) Delete(c *gin.Context) {
@@ -123,6 +123,15 @@ func (h *TodoHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// @Summary Update todo status
+// @Description Update todo item status
+// @Tags todo
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Todo id to update"
+// @Param status path string true "Desired status"
+// @Success 200
+// @Router /todo/{id}/{status} [post]
 func (h *TodoHandler) UpdateStatus(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
