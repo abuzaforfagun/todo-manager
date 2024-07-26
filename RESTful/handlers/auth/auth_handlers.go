@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"restful-service/models"
 	auth_repository "restful-service/repositories/auth"
-	utils_encryption "restful-service/utils/ecryption"
+	utils_encryption "restful-service/utils/encryption"
 	"sync"
 	"time"
 
