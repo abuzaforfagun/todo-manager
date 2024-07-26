@@ -11,6 +11,8 @@ import (
 	auth_handlers "restful-service/handlers/auth"
 	todo_handlers "restful-service/handlers/todo"
 	"restful-service/middleware"
+	auth_repository "restful-service/repositories/auth"
+	todo_repositories "restful-service/repositories/todo"
 	"strings"
 	"time"
 
@@ -56,13 +58,20 @@ func main() {
 		}
 	})
 
+	db := db.GetGormDb()
+	todoRepository := todo_repositories.NewRepository(db)
+	todoHandler := todo_handlers.NewHandler(todoRepository)
+
+	authRepository := auth_repository.NewRepository(db)
+	authHandler := auth_handlers.NewHandler(authRepository)
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.POST("/user/register", auth_handlers.Register)
-	router.POST("/login", auth_handlers.Login)
-	router.GET("/todo", wrapHandlerWithContext(todo_handlers.GetAll))
-	router.POST("/todo", todo_handlers.Add)
-	router.POST("/todo/:id/:status", todo_handlers.UpdateStatus)
-	router.DELETE("/todo/:id", todo_handlers.Delete)
+	router.POST("/user/register", authHandler.Register)
+	router.POST("/login", authHandler.Login)
+	router.GET("/todo", wrapHandlerWithContext(todoHandler.GetAll))
+	router.POST("/todo", todoHandler.Add)
+	router.POST("/todo/:id/:status", todoHandler.UpdateStatus)
+	router.DELETE("/todo/:id", todoHandler.Delete)
 
 	err = router.Run(":8000")
 

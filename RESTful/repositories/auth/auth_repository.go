@@ -3,21 +3,34 @@ package auth_repository
 import (
 	"errors"
 	"log"
-	"restful-service/db"
 	"restful-service/models"
 
 	"gorm.io/gorm"
 )
 
-func Register(userName string, password string) error {
-	gormDb := db.GetGormDb()
+type AuthRepository interface {
+	Register(userName string, password string) error
+	HasUser(username string) (bool, error)
+	GetUser(username string) (user models.UserDto, err error)
+}
 
+type authRepository struct {
+	db *gorm.DB
+}
+
+func NewRepository(db *gorm.DB) AuthRepository {
+	return &authRepository{
+		db: db,
+	}
+}
+
+func (r *authRepository) Register(userName string, password string) error {
 	credential := models.User{
 		Username: userName,
 		Password: password,
 	}
 
-	result := gormDb.Create(&credential)
+	result := r.db.Create(&credential)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
@@ -30,11 +43,9 @@ func Register(userName string, password string) error {
 	return nil
 }
 
-func HasUser(username string) (bool, error) {
-	gormDb := db.GetGormDb()
-
+func (r *authRepository) HasUser(username string) (bool, error) {
 	var credential models.User
-	result := gormDb.Find(&credential, "Username=?", username)
+	result := r.db.Find(&credential, "Username=?", username)
 
 	if result.Error != nil {
 		return false, result.Error
@@ -47,10 +58,9 @@ func HasUser(username string) (bool, error) {
 	return true, nil
 }
 
-func GetUser(username string) (user models.UserDto, err error) {
-	gormDb := db.GetGormDb()
+func (r *authRepository) GetUser(username string) (user models.UserDto, err error) {
 	var credential models.User
-	result := gormDb.Find(&credential, "Username=?", username)
+	result := r.db.Find(&credential, "Username=?", username)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return models.UserDto{}, errors.New("user not found")

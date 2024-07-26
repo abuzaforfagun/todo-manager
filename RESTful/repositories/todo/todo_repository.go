@@ -8,7 +8,25 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetAll(userId uint, pageSize int, pageNumber int) ([]models.TaskDto, error) {
+type TaskRepository interface {
+	GetAll(userId uint, pageSize int, pageNumber int) ([]models.TaskDto, error)
+	Add(task models.TaskRequestDto, userId uint) error
+	Delete(taskId int, userId uint) error
+	UpdateStatusToInProgress(taskId int, userId uint) error
+	UpdateStatusToCompleted(taskId int, userId uint) error
+}
+
+type taskRepository struct {
+	db *gorm.DB
+}
+
+func NewRepository(db *gorm.DB) TaskRepository {
+	return &taskRepository{
+		db: db,
+	}
+}
+
+func (t *taskRepository) GetAll(userId uint, pageSize int, pageNumber int) ([]models.TaskDto, error) {
 	gormDb := db.GetGormDb()
 
 	var tasks []models.Task
@@ -35,7 +53,7 @@ func GetAll(userId uint, pageSize int, pageNumber int) ([]models.TaskDto, error)
 	return tasksDto, nil
 }
 
-func Add(task models.TaskRequestDto, userId uint) error {
+func (t *taskRepository) Add(task models.TaskRequestDto, userId uint) error {
 	gormDb := db.GetGormDb()
 
 	model := models.Task{
@@ -51,7 +69,7 @@ func Add(task models.TaskRequestDto, userId uint) error {
 	return nil
 }
 
-func Delete(taskId int, userId uint) error {
+func (t *taskRepository) Delete(taskId int, userId uint) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
@@ -68,7 +86,7 @@ func Delete(taskId int, userId uint) error {
 	return nil
 }
 
-func UpdateStatusToInProgress(taskId int, userId uint) error {
+func (t *taskRepository) UpdateStatusToInProgress(taskId int, userId uint) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 
@@ -85,7 +103,7 @@ func UpdateStatusToInProgress(taskId int, userId uint) error {
 	return nil
 }
 
-func UpdateStatusToCompleted(taskId int, userId uint) error {
+func (t *taskRepository) UpdateStatusToCompleted(taskId int, userId uint) error {
 	gormDb := db.GetGormDb()
 	var task models.Task
 

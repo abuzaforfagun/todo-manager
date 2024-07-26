@@ -11,6 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type TodoHandler struct {
+	Repository todo_repositories.TaskRepository
+}
+
+func NewHandler(repo todo_repositories.TaskRepository) *TodoHandler {
+	return &TodoHandler{Repository: repo}
+}
+
 // @Summary Get Todo
 // @Description Get todo list
 // @Tags todo
@@ -20,7 +28,7 @@ import (
 // @Param pageNumber query int false "Page number (Default 1)"
 // @Success 200 {object} []models.TaskDto
 // @Router /todo [get]
-func GetAll(ctx context.Context, c *gin.Context) {
+func (h *TodoHandler) GetAll(ctx context.Context, c *gin.Context) {
 	pageSizeParam, hasPageSize := c.GetQuery("pageSize")
 
 	pageNumberParam, hasPageNumber := c.GetQuery("pageNumber")
@@ -47,7 +55,7 @@ func GetAll(ctx context.Context, c *gin.Context) {
 	}
 
 	userId := c.GetUint("UserId")
-	result, err := todo_repositories.GetAll(userId, pageSize, pageNumber)
+	result, err := h.Repository.GetAll(userId, pageSize, pageNumber)
 
 	if err != nil {
 		log.Printf("Error: Unable to get todo list %v", err)
@@ -65,7 +73,7 @@ func GetAll(ctx context.Context, c *gin.Context) {
 // @Param todo body models.TaskRequestDto true "Task payload"
 // @Success 201
 // @Router /todo [post]
-func Add(c *gin.Context) {
+func (h *TodoHandler) Add(c *gin.Context) {
 	var task models.TaskRequestDto
 
 	userId := c.GetUint("UserId")
@@ -75,7 +83,7 @@ func Add(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, nil)
 	}
 
-	err = todo_repositories.Add(task, userId)
+	err = h.Repository.Add(task, userId)
 	if err != nil {
 		log.Printf("Error: Unable to add todo %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -92,7 +100,7 @@ func Add(c *gin.Context) {
 // @Param todo query int true "Todo id to delete"
 // @Success 200
 // @Router /todo [delete]
-func Delete(c *gin.Context) {
+func (h *TodoHandler) Delete(c *gin.Context) {
 	idParam := c.Query("id")
 
 	userId := c.GetUint("UserId")
@@ -104,7 +112,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	err = todo_repositories.Delete(id, userId)
+	err = h.Repository.Delete(id, userId)
 
 	if err != nil {
 		log.Printf("Error: Unable to delete %v", err)
@@ -115,7 +123,7 @@ func Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-func UpdateStatus(c *gin.Context) {
+func (h *TodoHandler) UpdateStatus(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	userId := c.GetUint("UserId")
@@ -128,10 +136,10 @@ func UpdateStatus(c *gin.Context) {
 	status := c.Param("status")
 
 	if status == "inprogress" {
-		err = todo_repositories.UpdateStatusToInProgress(id, userId)
+		err = h.Repository.UpdateStatusToInProgress(id, userId)
 	}
 	if status == "completed" {
-		err = todo_repositories.UpdateStatusToCompleted(id, userId)
+		err = h.Repository.UpdateStatusToCompleted(id, userId)
 	}
 
 	if err != nil {

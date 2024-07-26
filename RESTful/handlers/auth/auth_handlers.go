@@ -15,6 +15,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type AuthHandler interface {
+	Register(c *gin.Context)
+	Login(c *gin.Context)
+}
+
+type authHandler struct {
+	repository auth_repository.AuthRepository
+}
+
+func NewHandler(repository auth_repository.AuthRepository) AuthHandler {
+	return &authHandler{
+		repository: repository,
+	}
+}
+
 var EncryptionKey string
 var JwtKey string
 
@@ -25,7 +40,7 @@ var JwtKey string
 // @Produce json
 // @Success 200
 // @Router /user/register [post]
-func Register(c *gin.Context) {
+func (h authHandler) Register(c *gin.Context) {
 	var credential models.UserLoginDto
 
 	err := c.BindJSON(&credential)
@@ -48,7 +63,7 @@ func Register(c *gin.Context) {
 			wg.Done()
 		}()
 
-		isExistingUser, err := auth_repository.HasUser(credential.Username)
+		isExistingUser, err := h.repository.HasUser(credential.Username)
 		if err != nil {
 			errChan <- err
 			return
@@ -102,7 +117,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	err = auth_repository.Register(credential.Username, encryptedPassword)
+	err = h.repository.Register(credential.Username, encryptedPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
@@ -118,7 +133,7 @@ func Register(c *gin.Context) {
 // @Param user body models.UserLoginDto true "Login payload"
 // @Success 201 {object} models.LoginResponse
 // @Router /login [post]
-func Login(c *gin.Context) {
+func (h authHandler) Login(c *gin.Context) {
 	var userDto models.UserLoginDto
 	err := c.BindJSON(&userDto)
 
@@ -127,7 +142,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	user, err := auth_repository.GetUser(userDto.Username)
+	user, err := h.repository.GetUser(userDto.Username)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{})
 		return
