@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"time"
 
@@ -13,12 +12,12 @@ import (
 )
 
 type TasksService struct {
-	db *sql.DB
+	repository task_repository.TaskRepository
 	task.UnimplementedTasksServer
 }
 
-func NewTasksService(db *sql.DB) TasksService {
-	return TasksService{db: db}
+func NewTasksService(repository task_repository.TaskRepository) TasksService {
+	return TasksService{repository: repository}
 }
 
 func (t *TasksService) AddTask(_ context.Context, req *task.TaskRequestModel) (*task.Empty, error) {
@@ -28,7 +27,7 @@ func (t *TasksService) AddTask(_ context.Context, req *task.TaskRequestModel) (*
 		CreatedAt: time.Now().Local().UTC(),
 	}
 
-	err := task_repository.Add(model)
+	err := t.repository.Add(model)
 
 	if err != nil {
 		log.Printf("Unable to add %v", err)
@@ -45,8 +44,8 @@ func timeToGoogleDate(t time.Time) *date.Date {
 	}
 }
 
-func (t *TasksService) GetAll(context context.Context, req *task.Empty) (*task.TaskList, error) {
-	responseFromDb, err := task_repository.GetAll(context)
+func (t *TasksService) GetAll(_ context.Context, req *task.Empty) (*task.TaskList, error) {
+	responseFromDb, err := t.repository.GetAll()
 	if err != nil {
 		log.Printf("Unable to retrieve %v", err)
 		return &task.TaskList{}, err
@@ -73,7 +72,7 @@ func (t *TasksService) GetAll(context context.Context, req *task.Empty) (*task.T
 }
 
 func (t *TasksService) SetToInProgress(_ context.Context, req *task.IntWrapper) (*task.Empty, error) {
-	err := task_repository.UpdateStatusToInProgress(int(req.Value))
+	err := t.repository.UpdateStatusToInProgress(int(req.Value))
 
 	if err != nil {
 		log.Printf("Error: Unable to update status %v", err)
@@ -84,7 +83,7 @@ func (t *TasksService) SetToInProgress(_ context.Context, req *task.IntWrapper) 
 }
 
 func (t *TasksService) SetToCompleted(_ context.Context, req *task.IntWrapper) (*task.Empty, error) {
-	err := task_repository.UpdateStatusToCompleted(int(req.Value))
+	err := t.repository.UpdateStatusToCompleted(int(req.Value))
 
 	if err != nil {
 		log.Printf("Error: Unable to update status %v", err)
@@ -95,7 +94,7 @@ func (t *TasksService) SetToCompleted(_ context.Context, req *task.IntWrapper) (
 }
 
 func (t *TasksService) Delete(_ context.Context, req *task.IntWrapper) (*task.Empty, error) {
-	err := task_repository.Delete(int(req.Value))
+	err := t.repository.Delete(int(req.Value))
 
 	if err != nil {
 		log.Printf("Error: Unable to delete %v", err)

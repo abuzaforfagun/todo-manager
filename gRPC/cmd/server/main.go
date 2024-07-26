@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/abuzaforfagun/todo-manager/internal/db"
+	task_repository "github.com/abuzaforfagun/todo-manager/internal/repositories"
 	"github.com/abuzaforfagun/todo-manager/internal/services"
 	"github.com/abuzaforfagun/todo-manager/protogen/golang/task"
 	"google.golang.org/grpc"
@@ -46,7 +47,8 @@ func main() {
 
 	server := grpc.NewServer()
 
-	taskService := services.NewTasksService(db)
+	taskRepository := task_repository.NewRepository(db)
+	taskService := services.NewTasksService(taskRepository)
 
 	task.RegisterTasksServer(server, &taskService)
 

@@ -1,18 +1,33 @@
 package task_repository
 
 import (
-	"context"
+	"database/sql"
 	"errors"
 	"time"
 
-	"github.com/abuzaforfagun/todo-manager/internal/db"
 	"github.com/abuzaforfagun/todo-manager/models"
 )
 
-func GetAll(ctx context.Context) (tasks []models.Task, err error) {
-	dbConnection := db.Get()
+type TaskRepository interface {
+	GetAll() (tasks []models.Task, err error)
+	Add(task models.Task) error
+	Delete(taskId int) error
+	UpdateStatusToInProgress(taskId int) error
+	UpdateStatusToCompleted(taskId int) error
+}
 
-	rows, err := dbConnection.QueryContext(ctx, "SELECT Id, Name, Status, CreatedAt FROM Tasks")
+type taskRepository struct {
+	db *sql.DB
+}
+
+func NewRepository(db *sql.DB) TaskRepository {
+	return &taskRepository{
+		db: db,
+	}
+}
+
+func (t *taskRepository) GetAll() (tasks []models.Task, err error) {
+	rows, err := t.db.Query("SELECT Id, Name, Status, CreatedAt FROM Tasks")
 	if err != nil {
 		return nil, err
 	}
@@ -38,9 +53,8 @@ func GetAll(ctx context.Context) (tasks []models.Task, err error) {
 	return tasks, nil
 }
 
-func Add(task models.Task) error {
-	dbConnection := db.Get()
-	sql, err := dbConnection.Prepare("INSERT INTO Tasks (Name, Status, CreatedAt) VALUES (?, ?, ?)")
+func (t *taskRepository) Add(task models.Task) error {
+	sql, err := t.db.Prepare("INSERT INTO Tasks (Name, Status, CreatedAt) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
@@ -52,9 +66,8 @@ func Add(task models.Task) error {
 	return nil
 }
 
-func Delete(taskId int) error {
-	dbConnection := db.Get()
-	sql, err := dbConnection.Prepare("DELETE FROM Tasks WHERE Id = ?")
+func (t *taskRepository) Delete(taskId int) error {
+	sql, err := t.db.Prepare("DELETE FROM Tasks WHERE Id = ?")
 	if err != nil {
 		return err
 	}
@@ -71,9 +84,8 @@ func Delete(taskId int) error {
 	return nil
 }
 
-func UpdateStatusToInProgress(taskId int) error {
-	dbConnection := db.Get()
-	sql, err := dbConnection.Prepare("UPDATE Tasks SET Status = ? WHERE Id = ?")
+func (t *taskRepository) UpdateStatusToInProgress(taskId int) error {
+	sql, err := t.db.Prepare("UPDATE Tasks SET Status = ? WHERE Id = ?")
 	if err != nil {
 		return err
 	}
@@ -85,9 +97,8 @@ func UpdateStatusToInProgress(taskId int) error {
 	return nil
 }
 
-func UpdateStatusToCompleted(taskId int) error {
-	dbConnection := db.Get()
-	sql, err := dbConnection.Prepare("UPDATE Tasks SET Status = ? WHERE Id = ?")
+func (t *taskRepository) UpdateStatusToCompleted(taskId int) error {
+	sql, err := t.db.Prepare("UPDATE Tasks SET Status = ? WHERE Id = ?")
 	if err != nil {
 		return err
 	}
